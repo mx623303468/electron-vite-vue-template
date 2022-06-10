@@ -13,6 +13,12 @@ rmSync(join(__dirname, 'dist'), { recursive: true, force: true }); // v14.14.0
 
 // https://vitejs.dev/config/
 export default defineConfig({
+	build: {
+		// https://github.com/electron-vite/electron-vite-vue/issues/107
+		// 异步路由加载css有问题,所以暂时禁用
+		// It works!
+		cssCodeSplit: false,
+	},
 	resolve: {
 		alias: {
 			'@': join(__dirname, 'src'),
@@ -21,7 +27,11 @@ export default defineConfig({
 	},
 	css: {
 		preprocessorOptions: {
+			css: { 
+				charset: false, // [WARNING] "@charset" must be the first rule in the file
+			 },
 			scss: {
+				charset: false, // [WARNING] "@charset" must be the first rule in the file
 				additionalData: `@use "styles/element/index.scss" as *;`,
 			},
 		},
@@ -55,12 +65,17 @@ export default defineConfig({
 		// Enables use of Node.js API in the Renderer-process
 		renderer(),
 		AutoImport({
+			// 自动导入 Vue 相关函数，如：ref, reactive, toRef 等
+			imports: ['vue', 'vue-router', 'pinia'],
 			resolvers: [ElementPlusResolver()],
+			dts: resolve(__dirname, 'auto-imports.d.ts'),
 		}),
 		Components({
-			resolvers: [ElementPlusResolver({
-        importStyle: "sass",
-      })],
+			resolvers: [
+				ElementPlusResolver({
+					importStyle: 'sass',
+				}),
+			],
 			dts: 'src/components.d.ts',
 		}),
 		// ElementPlus({ useSource: true }),
